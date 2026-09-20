@@ -21,8 +21,15 @@
 (function () {
   'use strict';
 
-  /* Optional: a Google Form to receive responses when the page is not
-     running as an artifact. See README for the two values. */
+  /* ── Where responses go ────────────────────────────────────────────────
+     Paste the Apps Script web-app URL here and every tap — from the live
+     site and from the artifact alike — is written straight into the club's
+     Google Sheet. Setup is in the README; it takes about four clicks and
+     nothing secret ends up in this file: the URL only accepts new rows, it
+     cannot read or change the sheet. */
+  var SHEET_URL = '';
+
+  /* Fallback: a Google Form, if you would rather use one than Apps Script. */
   var FORM = {
     formId:  '',          // the code between /e/ and /viewform
     entryId: ''           // e.g. 'entry.123456789'
@@ -82,6 +89,19 @@
       score: choice.score,
       at: new Date().toISOString()
     };
+
+    /* The sheet wins when it is configured, so that every response from
+       every version of the page lands in the same one place. */
+    if (SHEET_URL) {
+      /* URLSearchParams keeps the request a "simple" one, which is what
+         no-cors allows and what Apps Script reads into e.parameter. The
+         reply is opaque — there is nothing to read back. */
+      return fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: new URLSearchParams({ rating: choice.label, score: String(choice.score) })
+      });
+    }
 
     if (store) {
       /* add() writes one document per response, so two people tapping at
