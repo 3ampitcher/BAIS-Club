@@ -23,42 +23,25 @@ nothing that asks a student for their name, number, email or student ID.
 
 ## The event survey
 
-Five emoji, one tap, anonymous. Only the rating and the time are ever recorded.
+Five emoji, one tap, anonymous. Only the rating, the score and the time are
+ever recorded — nothing about the student.
 
-**Where the responses go depends on where the page is running.**
+Responses go to the club's Google Sheet:
 
-### Published as a Claude artifact — works now, nothing to set up
+**BAIS Club — Event Feedback**
+https://docs.google.com/spreadsheets/d/19rMlKacRGPL7nTIsCoU_JMXG5llcVPiXtbPyXvoZuN4/edit
 
-The published page is granted a shared database. Every tap from every phone
-writes one row into it, and the club can pull the whole set out as a
-spreadsheet at any time. This is the version to hand to students.
+The page posts each tap to an Apps Script web app that lives inside that
+sheet (`SHEET_URL` in `assets/app.js`; see SHEET-SETUP.md for how it was
+deployed). That URL is safe to have in a public page because it accepts one
+thing — a new row. It cannot read the sheet, change or delete rows, or reach
+anything else in the Drive account.
 
-### On a plain static host (GitHub Pages) — needs a form
-
-A public static page has nowhere of its own to write. It cannot use GitHub as
-the backend either: any token that let the page write would have to ship
-inside the page, where anyone could read it and then write — or delete —
-whatever they liked in the repository. A public page can hold no secret.
-
-So on a static host the survey posts to a Google Form instead, which drops
-each response into a Google Sheet the club owns. Set the two values at the
-top of `assets/app.js`:
-
-```js
-var FORM = { formId: '', entryId: '' };
-```
-
-1. [forms.google.com](https://forms.google.com) → new blank form.
-2. Add **one** question, type **Short answer**, e.g. "Event rating".
-3. **⋮ → Get pre-filled link**, type anything, **Get link**, copy it.
-4. From that URL: `formId` is the long code between `/e/` and `/viewform`;
-   `entryId` is the `entry.123456789` part.
-
-Responses then appear under the form's **Responses** tab and in its linked
-Google Sheet.
-
-Until one of the two is in place, a tap still thanks the student and the page
-says plainly that it was not sent, rather than pretending it was.
+**Use the live site for events, not the artifact preview.** A published
+artifact runs under a content policy that blocks requests to other sites, so
+the sheet cannot be reached from there; the artifact falls back to its own
+database and the responses would end up split across two places. The GitHub
+Pages URL has no such restriction and writes straight to the sheet.
 
 ## Editing
 

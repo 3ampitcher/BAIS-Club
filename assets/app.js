@@ -27,7 +27,7 @@
      Google Sheet. Setup is in the README; it takes about four clicks and
      nothing secret ends up in this file: the URL only accepts new rows, it
      cannot read or change the sheet. */
-  var SHEET_URL = '';
+  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbyl5H3BIzKSS3bGOee2MytX6VAqhFeNlpZn0Y-CsfPY6nHQyJ_VvmzL6GQbNMj9Z4SJRQ/exec';
 
   /* Fallback: a Google Form, if you would rather use one than Apps Script. */
   var FORM = {
@@ -90,16 +90,24 @@
       at: new Date().toISOString()
     };
 
-    /* The sheet wins when it is configured, so that every response from
-       every version of the page lands in the same one place. */
+    /* The sheet wins when it is configured, so every response lands in the
+       same one place. Note this only reaches the sheet on an ordinary host
+       such as GitHub Pages: a published artifact runs under a content policy
+       that blocks requests to other sites, so there the call fails and the
+       artifact's own database catches the response instead. That is why the
+       live site, not the artifact, is the link to hand to students. */
     if (SHEET_URL) {
-      /* URLSearchParams keeps the request a "simple" one, which is what
-         no-cors allows and what Apps Script reads into e.parameter. The
-         reply is opaque — there is nothing to read back. */
+      /* URLSearchParams keeps this a "simple" request, which is what no-cors
+         allows and what Apps Script reads into e.parameter. The reply is
+         opaque — there is nothing to read back. */
       return fetch(SHEET_URL, {
         method: 'POST',
         mode: 'no-cors',
         body: new URLSearchParams({ rating: choice.label, score: String(choice.score) })
+      }).catch(function (err) {
+        /* Blocked or offline: never drop the tap on the floor. */
+        if (store) return store.collection('responses').add(record);
+        throw err;
       });
     }
 
